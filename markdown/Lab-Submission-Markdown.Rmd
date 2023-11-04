@@ -1,0 +1,113 @@
+
+---
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+Model perfomance comparison using Boston housing Dataset
+================
+
+- [Student Details](#student-details)
+- [Setup Chunk](#setup-chunk)
+- [Understanding the Dataset (Exploratory Data Analysis (EDA))](#understanding-the-dataset-exploratory-data-analysis-eda)
+  - [Loading the Dataset](#loading-the-dataset)
+    - [Source:](#source)
+- [Executable R code inside the various code chunks as guided by the lab work.](#executable-r-code-inside-the-various-code-chunks-as-guided-by-the-lab-work)
+  - [Model Training](#model-training)
+  - [Model Comparison](#model-comparison)
+  - [Model Evaluation](#model-evaluation)
+  
+
+# Student Details
+
+|                                              |             |
+|----------------------------------------------|-------------|
+| **Team Name**                                | Team quatum |
+| **BBIT 4.2 Group**                           | B           |
+| **BI Project Group Name/ID (if applicable)** | …           |
+
+# Setup Chunk
+
+**Note:** the following KnitR options have been set as the global
+defaults:  
+`knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy = TRUE)`.
+
+# Understanding the Dataset (Exploratory Data Analysis (EDA))
+
+## Loading the Dataset
+
+data("BostonHousing")
+
+### Source:
+
+The dataset is provided in the mlbench package under the name
+BostonHousing
+
+# Executable R code inside the various code chunks as guided by the lab work.
+
+##Train the Models ----
+
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+### Linear Regression 
+set.seed(7)
+housing_model_lm <- train(medv ~ ., data = BostonHousing,
+                          method = "lm", trControl = train_control)
+
+### CART ----
+set.seed(7)
+housing_model_cart <- train(medv ~ ., data = BostonHousing,
+                            method = "rpart", trControl = train_control)
+
+### KNN ----
+set.seed(7)
+housing_model_knn <- train(medv ~ ., data = BostonHousing,
+                           method = "knn", trControl = train_control)
+
+### SVM ----
+set.seed(7)
+housing_model_svm <- train(medv ~ ., data = BostonHousing,
+                           method = "svmRadial", trControl = train_control)
+
+### Random Forest ----
+set.seed(7)
+housing_model_rf <- train(medv ~ ., data = BostonHousing,
+                          method = "rf", trControl = train_control)
+
+## 3.b. Call the `resamples` Function ----
+results <- resamples(list(LM = housing_model_lm, CART = housing_model_cart,
+                          KNN = housing_model_knn, SVM = housing_model_svm,
+                          RF = housing_model_rf))
+
+# STEP 4. Display the Results ----
+
+## 1. Table Summary ----
+summary(results)
+
+## 2. Box and Whisker Plot ----
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+bwplot(results, scales = scales)
+
+## 3. Dot Plots ----
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+dotplot(results, scales = scales)
+
+## 4. Scatter Plot Matrix ----
+splom(results)
+
+## 5. Pairwise xyPlots ----
+xyplot(results, models = c("LDA", "SVM"))
+
+# or
+xyplot(results, models = c("SVM", "CART"))
+
+## 6. Statistical Significance Tests ----
+diffs <- diff(results)
+summary(diffs)
